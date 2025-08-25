@@ -1,0 +1,392 @@
+1. Use symbolic mode to change permissions: 
+chmod u+x testfile.txt 
+chmod g-w testfile.txt 
+chmod o=r testfile.txt 
+2.chmod 701 ~/projectX/secureFolder
+  chmod 770 ~/projectX
+  display->sudo ./secureFolder
+3.Change the owner of the file 
+  sudo chown student testfile.txt 
+  Change the group of the file 
+  sudo chgrp students testfile.txt
+4.few commands available in /bin and /sbin directory 
+  ls /bin | head
+5.Write the permissions of test directory
+  ls -ld /home/dcs-user/test
+6.Rename the test directory to testing 
+  mv /home/dcs-user/test /home/dcs-user/testing
+ * * * * * user command
+│ │ │ │ │
+│ │ │ │ └── Day of week (0–6, Sunday=0 or 7, Monday=1)
+│ │ │ └──── Month (1–12)
+│ │ └────── Day of month (1–31)
+│ └──────── Hour (0–23)
+└────────── Minute (0–59)
+7.
+Create and Schedule a Recurring Task Using Crontab 
+vim ~/datetime.sh 
+#!/bin/bash 
+date >> ~/datetime_log.txt 
+chmod +x ~/datetime.sh 
+crontab -e 
+* * * * * /home/username/datetime.sh 
+cat ~/datetime_log.txt 
+
+Schedule a One-Time Task Using `at` 
+sudo apt install at 
+sudo systemctl enable --now atd  
+at now + 5 minutes 
+echo "One-time task completed at $(date)" >> ~/one_time_task.txt 
+Ctrl+D to exit input 
+cat ~/one_time_task.txt 
+
+View and Remove Scheduled Jobs 
+ View
+crontab -l 
+ Remove
+crontab -r 
+ View pending `at` jobs: 
+atq 
+ Remove an `at` job: 
+atrm <job_number>
+ 
+Schedule a Backup Task Using Crontab  
+vim ~/backup.sh 
+#!/bin/bash 
+mkdir -p ~/backups 
+tar -czf ~/backups/documents_backup_$(date +%Y%m%d_%H%M%S).tar.gz 
+~/Documents 
+chmod +x ~/backup.sh 
+crontab -e 
+0 23 * * * /home/username/backup.sh 
+(30 23 * * 1-5 tar -czf ~/backup_myPrograms.tgz -C ~/ myPrograms)
+
+Schedule System Resource Monitoring 
+vim ~/monitor.sh 
+#!/bin/bash 
+echo "$(date)" >> ~/system_monitor.log 
+top -b -n1 | head -10 >> ~/system_monitor.log 
+chmod +x ~/monitor.sh 
+crontab -e 
+0 * * * * /home/username/monitor.sh 
+--------------
+8.Create a User 
+sudo useradd -m student1 
+sudo passwd student1 
+cat /etc/passwd | grep student1 
+
+Create a Group and Add a User 
+sudo groupadd developers 
+sudo usermod -aG developers student1 
+groups student1 
+
+Modify User Information 
+sudo usermod -l devuser1 student1 
+sudo usermod -s /bin/sh devuser1 
+grep devuser1 /etc/passwd 
+
+Set Account Expiry and Lock 
+sudo chage -E 2025-12-31 devuser1 
+sudo usermod -L devuser1 
+sudo passwd -S devuser1 
+sudo usermod -U devuser1 
+
+Delete a User and Group 
+sudo userdel -r devuser1 
+sudo groupdel developers 
+
+Explore Files 
+cat /etc/passwd | grep root 
+cat /etc/shadow | grep root 
+cat /etc/group | grep root
+
+9.user group with userid
+  -sudo groupadd -g 400 Level3Students
+  user with username,fullname,userid,paswd member of above
+  -sudo useradd -u 500 -c "Anne Frank" -g Level3Students -m anne
+   echo "anne:frank123$" | sudo chpasswd
+  remv all
+  -sudo userdel -r anne
+  -sudo groupdel Level3Students
+  
+  current configuration of the first Ethernet interface. 
+  -ifconfig eth0
+  Test the network connectivity between your computer and a server in the   
+  Internet such as www.ac.lk. ->>ping -c 4 www.ac.lk
+  Install the ‘apache2’ package for web services using apt-get package         manager.sudo apt update
+sudo apt install apache2 -y
+ 
+10.
+user input
+read -p "Enter your name: " name
+ echo "Hello, $name!"#!/bin/bash
+ echo "Script name: $0"
+ echo "First argument: $1"
+ echo "Number of arguments: $#"
+./myscript.sh hello world
+
+11.read-p "Enter a number: " num
+ if [ $num-gt 0 ]; then
+ echo "Positive"
+ else
+ echo "Not positive"
+ fi
+
+12.for i in {1..5}; do
+ echo "Number: $i"
+ done
+ read-p "Guess a number: " guess
+ while [ "$guess"-ne 7 ]; do
+ read-p "Try again: " guess
+ done
+
+13.while read line; do
+ echo "User: $line"
+ done < users.txt
+ echo "Done" >> log.txt
+
+14.takes name and age as arguments
+name=$1
+age=$2
+echo "Hello $name! You are $age years old."
+./script.sh Alice 25
+
+15.read -p "Enter a number: " num
+if [ $((num % 2)) -eq 0 ]; then
+    echo "$num is even"
+else
+    echo "$num is odd"
+fi
+
+16.count=5
+while [ $count -ge 1 ]; do
+    echo $count
+    ((count--))
+done
+
+--------
+
+#!/bin/bash
+
+# Check for correct argument count
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <userlist-file>"
+    exit 1
+fi
+
+userlist="$1"
+
+# Validate file existence
+if [[ ! -f "$userlist" || ! -r "$userlist" ]]; then
+    echo "Error: File '$userlist' does not exist or is not readable."
+    exit 1
+fi
+
+while IFS=',' read -r username fullname; do
+    # Trim whitespace
+    username=$(echo "$username" | xargs)
+    fullname=$(echo "$fullname" | xargs)
+
+    # Skip empty or malformed lines
+    [[ -z "$username" || -z "$fullname" ]] && continue
+
+    # Check username validity (simple regex)
+    if [[ ! "$username" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+        echo "Invalid username: $username. Skipping."
+        continue
+    fi
+
+    if id "$username" &>/dev/null; then
+        echo "User $username already exists. Skipping."
+    else
+        useradd -m -c "$fullname" -s /bin/bash "$username"
+
+        # Set initial password (here: "Default123")
+        echo "$username:Default123" | chpasswd
+        
+        # Force password change on first login
+        passwd --expire "$username"
+
+        echo "Created user: $username (Full Name: $fullname, Shell: /bin/bash, Initial password set)"
+    fi
+done < "$userlist"
+
+----------
+while read -r username; do
+        # Skip empty lines
+        [[ -z "$username" ]] && continue
+
+        # Check if user already exisits
+        if id "$username" &>/dev/null; then
+                echo "User $username already exists. Skipping."
+        else
+                useradd -m "$username"
+                echo "Created user: $username"
+        fi
+done < userlist.txt
+--
+if [[ $# -ne 1 ]]; then
+        echo "Usage: $0 <userlist-file>"
+        exit 1
+fi
+
+userlist="$1"
+
+# Check if the file exists and is readable
+if [[ ! -f "$userlist" || ! -r "$userlist" ]]; then
+        echo "Error: File '$userlist' does not exist or is not readable."
+        exit 1
+fi
+
+--
+[[ -z "$username" ]] && continue
+        if id "$username" &>/dev/null; then
+                echo "User $username already exists. Skipping."
+        else
+                useradd -m -s /bin/bash  "$username"
+                echo "Created user: $username"
+        fi
+done < "$userlist"
+--
+while IFS=',' read -r username fullname; do
+        # Skip empty or malformed lines
+        [[ -z "$username" || -z "$fullname" ]] && continue
+
+        # Check if user already exisits
+        if id "$username" &>/dev/null; then
+                echo "User $username already exists. Skipping."
+        else    
+                useradd -m -c "$fullname"  "$username"
+                echo "Created user: $username (Full Name: $fullname)."
+        fi
+done < "$userlist"
+--
+while IFS=',' read -r username fullname; do
+        # Skip empty lines
+        [[ -z "$username" || -z "$fullname" ]] && continue
+
+        # Check if user already exisits
+        if id "$username" &>/dev/null; then
+                echo "User $username already exists. Skipping."
+        else
+                useradd -m -c "$fullname" -s /bin/bash  "$username"
+
+                # Set initial password (here: "Default123")
+                echo "$username:Default123" | chpasswd
+
+                # Force password change on first login
+                passwd --expire "$username"
+
+                echo "Created user: $username (Full Name: $fullname, Shell: /bin/bash, Initial password set)."
+        fi
+done < "$userlist"
+
+----
+su bob
+----
+#!/bin/bash
+# Script: file_org.sh
+# Purpose: Organize files in a directory into subdirectories by extension
+
+# Check if a directory was provided
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <directory>"
+    exit 1
+fi
+
+TARGET_DIR="$1"
+
+# Check if directory exists
+if [[ ! -d "$TARGET_DIR" ]]; then
+    echo "Error: $TARGET_DIR is not a directory."
+    exit 1
+fi
+
+# Change into the target directory
+cd "$TARGET_DIR" || exit
+
+# Loop through files (only regular files, skip directories)
+for file in *; do
+    if [[ -f "$file" ]]; then
+        # Extract extension (lowercased, without dot)
+        ext="${file##*.}"
+
+        # If no extension, put into 'others'
+        if [[ "$file" == "$ext" ]]; then
+            folder="others"
+        else
+            # Define folder name based on extension
+            case "$ext" in
+                txt) folder="text_files" ;;
+                jpg|jpeg|png|gif) folder="images" ;;
+                pdf|doc|docx) folder="documents" ;;
+                mp3|wav) folder="audio" ;;
+                mp4|mkv|avi) folder="videos" ;;
+                *) folder="${ext}_files" ;;  # generic folder
+            esac
+        fi
+
+        # Create folder if it doesn’t exist
+        mkdir -p "$folder"
+
+ # Move file
+        mv "$file" "$folder"/
+        echo "Moved $file -> $folder/"
+    fi
+done
+
+echo "✅ File organization complete!"
+------------------------
+#!/bin/bash
+
+input="$1"
+
+# check arguments
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <users_file>"
+    exit 1
+fi
+
+# check if file exists
+if [[ ! -f "$input" ]]; then
+    echo "File not found: $input"
+    exit 1
+fi
+
+# read file line by line
+while read -r username firstname lastname group; do
+    # skip empty or commented lines
+    [ -z "$username" ] && continue
+    [[ "$username" =~ ^# ]] && continue
+
+    # check if user already exists
+    if id "$username" &>/dev/null; then
+        echo "User: $username already exists"
+        continue
+fi
+
+    # check if group exists, if not create
+    if ! getent group "$group" &>/dev/null; then
+        echo "Group: $group does not exist, creating..."
+        groupadd "$group"
+    fi
+
+    # create user with full name
+    useradd -m -c "$firstname $lastname" -g "$group" "$username"
+
+    if [[ $? -eq 0 ]]; then
+        echo "User $username created successfully"
+    else
+        echo "Failed to create user $username"
+    fi
+done < "$input"
+---------
+echo "Current User: $(whoami)"
+echo "Date and Time: $(date)"
+echo "System Uptime: $(uptime -p)"
+echo "Memory Usage:"
+free -h | grep -E "total|Mem"
+----------
+
+
+
